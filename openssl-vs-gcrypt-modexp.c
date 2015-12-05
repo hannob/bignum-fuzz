@@ -48,7 +48,8 @@ char *gcrytostring(gcry_mpi_t in) {
 	size_t j=0;
 	gcry_mpi_aprint(GCRYMPI_FMT_HEX, (unsigned char**) &a, &i, in);
 	while(a[j]=='0' && j<(i-2)) j++;
-	if (((j%2)==1) && (strlen(&a[j])!=1)) j--;
+	if ((j%2)==1) j--;
+	if (strncmp(&a[j],"00",2)==0) j++;
 	b=malloc(i-j);
 	strcpy(b, &a[j]);
 	free(a);
@@ -74,10 +75,10 @@ void gcrytest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, 
 	gcry_mpi_powm(res1, b, c, a);
 	res->exptmod=gcrytostring(res1);
 
-	gcry_free(a);
-	gcry_free(b);
-	gcry_free(c);
-	gcry_free(res1);
+	gcry_mpi_release(a);
+	gcry_mpi_release(b);
+	gcry_mpi_release(c);
+	gcry_mpi_release(res1);
 }
 
 /* test bn functions from openssl/libcrypto */
@@ -137,7 +138,6 @@ int main(int argc, char *argv[]) {
 	assert(l1+l2+l3==len-2);
 	printf("div1 div2 %i %i\n", divi1, divi2);
 	printf("len l1 l2 l3 %i %i %i %i\n", (int)len,(int)l1,(int)l2,(int)l3);
-	printf("hello\n");
 	a=in+2;
 	b=in+2+l1;
 	c=in+2+l1+l2;
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 
 	bntest(a, l1, b, l2, c, l3, &openssl_results);
 	printres(&openssl_results);
-
+	if ((strcmp(openssl_results.a,"0")==0) || (strcmp(openssl_results.c,"0")==0)) return -2;
 
 	gcrytest(a, l1, b, l2, c, l3, &gnutls_results);
 	printres(&gnutls_results);
