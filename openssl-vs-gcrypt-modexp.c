@@ -56,7 +56,7 @@ char *gcrytostring(gcry_mpi_t in) {
 	return b;
 }
 
-/* test gcry functions from libgcrypt/gnutls */
+/* test gcry functions from libgcrypt */
 void gcrytest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, unsigned char* c_raw, int c_len, struct big_results *res) {
 	gcry_mpi_t a, b, c, res1, res2;
 
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 	unsigned char in[MAXBUF];
 	unsigned char *a, *b, *c;
 	struct big_results openssl_results= {"openssl",0,0,0,0};
-	struct big_results gnutls_results= {"libgcrypt",0,0,0,0};
+	struct big_results gcrypt_results= {"libgcrypt",0,0,0,0};
 
 	if (argc!=2) {
 		printf("no file given\n");
@@ -147,13 +147,13 @@ int main(int argc, char *argv[]) {
 	printres(&openssl_results);
 	if ((strcmp(openssl_results.a,"0")==0) || (strcmp(openssl_results.c,"0")==0)) return -2;
 
-	gcrytest(a, l1, b, l2, c, l3, &gnutls_results);
-	printres(&gnutls_results);
+	gcrytest(a, l1, b, l2, c, l3, &gcrypt_results);
+	printres(&gcrypt_results);
 
-	assert(strcmp(openssl_results.exptmod, gnutls_results.exptmod)==0);
+	assert(strcmp(openssl_results.exptmod, gcrypt_results.exptmod)==0);
 
 	freeres(&openssl_results);
-	freeres(&gnutls_results);
+	freeres(&gcrypt_results);
 
 	return 0;
 }
